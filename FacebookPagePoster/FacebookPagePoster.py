@@ -46,7 +46,6 @@ class FacebookPagePoster(object):
         self.drive_service = None
         self.page_url = None
         self.page_id = None
-        self.user_profile = None
 
     def delete(self, story_fbid):
         def delete():
@@ -122,7 +121,8 @@ class FacebookPagePoster(object):
             ).click()
 
         def send_message():
-            text_box = self.driver.find_element(By.XPATH, '//*[@id="u_0_0"]')
+            text_box = self.driver.find_element(By.XPATH, '//*[contains(@id,"u_0_0")]')
+            #text_box = self.driver.find_element(By.XPATH, '//*[@id="u_0_0"]')
             text_box.click()
             text_box.clear()
             text_box.send_keys(message)
@@ -140,7 +140,8 @@ class FacebookPagePoster(object):
 
         def open_text_area():
 
-            text_area = self.driver.find_element(By.XPATH, '//*[@id="u_0_0"]')
+            #text_area = self.driver.find_element(By.XPATH, '//*[@id="u_0_0"]')
+            text_area = self.driver.find_element(By.XPATH, '//*[contains(@id,"u_0_0")]')
             text_area.click()
             return self.driver.switch_to.active_element
 
@@ -178,6 +179,7 @@ class FacebookPagePoster(object):
                     By.XPATH,'//input[@name="pass"]'
                 ))
             )
+            # pwd = self.driver.find_element_by_name("pass")
             pwd.clear()
             pwd.send_keys(self.password)
             pwd.send_keys(Keys.RETURN)
@@ -235,12 +237,9 @@ class FacebookPagePoster(object):
                 profile.set_preference("keep_alive", False)
                 options = webdriver.FirefoxOptions()
                 options.add_argument('-headless')
-                options.add_argument('-profile')
-                options.add_argument('/Users/horstmann/Documents/spotted/spottedufpr30_bot/spotted_profile')
-                options.log.level = "trace"
                 logger.info("Initializing Firefox")
 
-                self.driver = webdriver.Firefox(profile, options=options, service_args=["--marionette-port", "2828"])
+                self.driver = webdriver.Firefox(profile, options=options)
 
                 # logger.info("Initializing Chrome")
                 # chrome_options = webdriver.ChromeOptions()
@@ -276,28 +275,25 @@ class FacebookPagePoster(object):
     def setup(self, page_id, email, password):
         self.page_url = 'https://mbasic.facebook.com/' + page_id + '/'
         self.firing_up_driver()
-        self.go_to_page()
-        self.get_page_id()
-        # self.sign_in()
+        self.sign_in()
         self.email = email
         self.password = password
 
-    def go_to_page(self):
-        self.driver.get(self.page_url)
+    def sign_in(self):
+        def go_to_page():
+            self.driver.get(self.page_url)
 
-    def get_page_id(self):
-        img = self.driver.find_element(
+        def get_page_id():
+            img = self.driver.find_element(
                 By.XPATH,
                 '/html/body/div[1]/div/div[2]/div/div[1]/' +
                 'div/div[3]/div/div[1]/div/div[1]/div/a'
             )
-        img_url = img.get_attribute('href')
-        regex = r"https:\/\/.*profile_id="
-        page_id = re.sub(regex, "", img_url)
-        self.page_id = page_id
+            img_url = img.get_attribute('href')
+            regex = r"https:\/\/.*profile_id="
+            page_id = re.sub(regex, "", img_url)
+            self.page_id = page_id
 
-
-    def sign_in(self):
         def login_attempt():
             self.getting_login_details()
             logger.info("Logging in...")
@@ -314,3 +310,5 @@ class FacebookPagePoster(object):
             else:
                 self.login = True
                 logger.info("Login Successful!")
+                go_to_page()
+                get_page_id()
